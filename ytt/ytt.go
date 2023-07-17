@@ -18,13 +18,13 @@ package ytt
 
 import (
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 
 	"github.com/buildpacks/libcnb"
 	"github.com/paketo-buildpacks/libpak"
 	"github.com/paketo-buildpacks/libpak/bard"
-	"github.com/paketo-buildpacks/libpak/crush"
 )
 
 type Ytt struct {
@@ -43,10 +43,10 @@ func (w Ytt) Contribute(layer libcnb.Layer) (libcnb.Layer, error) {
 	w.LayerContributor.Logger = w.Logger
 
 	return w.LayerContributor.Contribute(layer, func(artifact *os.File) (libcnb.Layer, error) {
-		w.Logger.Bodyf("Expanding to %s", layer.Path)
-		if err := crush.ExtractTarXz(artifact, layer.Path, 1); err != nil {
-			return libcnb.Layer{}, fmt.Errorf("unable to expand Ytt\n%w", err)
-		}
+		w.Logger.Bodyf("Copying to %s", layer.Path)
+		//if err := crush.ExtractTarXz(artifact, layer.Path, 1); err != nil {
+		//	return libcnb.Layer{}, fmt.Errorf("unable to expand Ytt\n%w", err)
+		//}
 
 		binDir := filepath.Join(layer.Path, "bin")
 
@@ -54,8 +54,8 @@ func (w Ytt) Contribute(layer libcnb.Layer) (libcnb.Layer, error) {
 			return libcnb.Layer{}, fmt.Errorf("unable to mkdir\n%w", err)
 		}
 
-		if err := os.Symlink(filepath.Join(layer.Path, "ytt"), filepath.Join(binDir, "ytt")); err != nil {
-			return libcnb.Layer{}, fmt.Errorf("unable to symlink Ytt\n%w", err)
+		if err := copyFile(artifact, filepath.Join(binDir, "ytt")); err != nil {
+			return libcnb.Layer{}, fmt.Errorf("unable to copy Ytt\n%w", err)
 		}
 
 		return layer, nil
@@ -64,4 +64,19 @@ func (w Ytt) Contribute(layer libcnb.Layer) (libcnb.Layer, error) {
 
 func (w Ytt) Name() string {
 	return w.LayerContributor.LayerName()
+}
+
+func copyFile(sourceFile *os.File, destinationFile string) error {
+	input, err := io.ReadAll(sourceFile)
+	if err != nil {
+		return err
+	}
+
+	// needs to be executable
+	err = os.WriteFile(destinationFile, input, 0755)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
