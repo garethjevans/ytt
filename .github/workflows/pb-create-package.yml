@@ -3,6 +3,9 @@ name: Create Package
     release:
         types:
             - published
+    push:
+        branches:
+            - main
 jobs:
     create-package:
         name: Create Package
