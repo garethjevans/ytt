@@ -21,7 +21,7 @@ import (
 
 	"github.com/paketo-buildpacks/libpak"
 	"github.com/paketo-buildpacks/libpak/bard"
-	"github.com/garethjevans/ytt"
+	"github.com/garethjevans/ytt/ytt"
 )
 
 func main() {
