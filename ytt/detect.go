@@ -18,6 +18,7 @@ package ytt
 
 import (
 	"github.com/buildpacks/libcnb"
+	"github.com/paketo-buildpacks/libpak/bard"
 )
 
 const (
@@ -25,9 +26,11 @@ const (
 )
 
 type Detect struct {
+	Logger bard.Logger
 }
 
 func (d Detect) Detect(context libcnb.DetectContext) (libcnb.DetectResult, error) {
+	d.Logger.Bodyf("detecting...ytt")
 	return libcnb.DetectResult{
 		Pass: true,
 		Plans: []libcnb.BuildPlan{

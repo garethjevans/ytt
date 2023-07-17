@@ -44,9 +44,6 @@ func (w Ytt) Contribute(layer libcnb.Layer) (libcnb.Layer, error) {
 
 	return w.LayerContributor.Contribute(layer, func(artifact *os.File) (libcnb.Layer, error) {
 		w.Logger.Bodyf("Copying to %s", layer.Path)
-		//if err := crush.ExtractTarXz(artifact, layer.Path, 1); err != nil {
-		//	return libcnb.Layer{}, fmt.Errorf("unable to expand Ytt\n%w", err)
-		//}
 
 		binDir := filepath.Join(layer.Path, "bin")
 

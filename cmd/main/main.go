@@ -19,14 +19,14 @@ package main
 import (
 	"os"
 
+	"github.com/garethjevans/ytt/ytt"
 	"github.com/paketo-buildpacks/libpak"
 	"github.com/paketo-buildpacks/libpak/bard"
-	"github.com/garethjevans/ytt/ytt"
 )
 
 func main() {
 	libpak.Main(
-		ytt.Detect{},
+		ytt.Detect{Logger: bard.NewLogger(os.Stdout)},
 		ytt.Build{Logger: bard.NewLogger(os.Stdout)},
 	)
 }
