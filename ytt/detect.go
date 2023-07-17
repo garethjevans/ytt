@@ -38,6 +38,9 @@ func (d Detect) Detect(context libcnb.DetectContext) (libcnb.DetectResult, error
 				Provides: []libcnb.BuildPlanProvide{
 					{Name: PlanEntryWatch},
 				},
+				Requires: []libcnb.BuildPlanRequire{
+					{Name: PlanEntryWatch},
+				},
 			},
 		},
 	}, nil

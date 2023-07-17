@@ -40,6 +40,9 @@ func testDetect(t *testing.T, context spec.G, it spec.S) {
 					Provides: []libcnb.BuildPlanProvide{
 						{Name: "ytt"},
 					},
+					Requires: []libcnb.BuildPlanRequire{
+						{Name: "ytt"},
+					},
 				},
 			},
 		}))
