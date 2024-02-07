@@ -32,14 +32,14 @@ api = "0.7"
   pre-package = "scripts/build.sh"
 
   [[metadata.dependencies]]
-    cpes = ["cpe:2.3:a:ytt:ytt:0.45.3:*:*:*:*:*:*:*"]
+    cpes = ["cpe:2.3:a:ytt:ytt:0.48.0:*:*:*:*:*:*:*"]
     id = "ytt"
     name = "Ytt"
-    purl = "pkg:generic/ytt@0.45.3?arch=amd64"
-    sha256 = "a6729fb8514f10ab58f9ed3b50cd90ef79bf16d1cb29173baa84e1af0bc5ad4f"
+    purl = "pkg:generic/ytt@0.48.0?arch=amd64"
+    sha256 = "090dc914c87e5ba5861e37f885f12bac3b15559c183c30d4af2e63ccab03d5f9"
     stacks = ["io.buildpacks.stacks.bionic", "io.paketo.stacks.tiny", "*"]
-    uri = "https://github.com/carvel-dev/ytt/releases/download/v0.45.3/ytt-linux-amd64"
-    version = "0.45.3"
+    uri = "https://github.com/carvel-dev/ytt/releases/download/v0.48.0/ytt-linux-amd64"
+    version = "0.48.0"
 
     [[metadata.dependencies.licenses]]
       type = "Apache-2.0"
