@@ -9,7 +9,7 @@ jobs:
         runs-on:
             - ubuntu-latest
         steps:
-            - uses: actions/setup-go@v4
+            - uses: actions/setup-go@v5
               with:
                 go-version: "1.20"
             - name: Install update-buildpack-dependency
@@ -19,28 +19,11 @@ jobs:
                 set -euo pipefail
 
                 go install -ldflags="-s -w" github.com/paketo-buildpacks/libpak/cmd/update-buildpack-dependency@latest
-            - name: Install yj
-              run: |
-                #!/usr/bin/env bash
-
-                set -euo pipefail
-
-                echo "Installing yj ${YJ_VERSION}"
-
-                mkdir -p "${HOME}"/bin
-                echo "${HOME}/bin" >> "${GITHUB_PATH}"
-
-                curl \
-                  --location \
-                  --show-error \
-                  --silent \
-                  --output "${HOME}"/bin/yj \
-                  "https://github.com/sclevine/yj/releases/download/v${YJ_VERSION}/yj-linux"
-
-                chmod +x "${HOME}"/bin/yj
-              env:
-                YJ_VERSION: 5.0.0
-            - uses: actions/checkout@v3
+            - uses: buildpacks/github-actions/setup-tools@v5.5.3
+              with:
+                crane-version: 0.19.0
+                yj-version: 5.1.0
+            - uses: actions/checkout@v4
             - id: dependency
               uses: docker://ghcr.io/paketo-buildpacks/actions/github-release-dependency:main
               with:
@@ -56,15 +39,19 @@ jobs:
 
                 set -euo pipefail
 
-                OLD_VERSION=$(yj -tj < buildpack.toml | jq -r "
-                  .metadata.dependencies[] |
-                  select( .id == env.ID ) |
-                  select( .version | test( env.VERSION_PATTERN ) ) |
-                  .version")
+                VERSION_DEPS=$(yj -tj < buildpack.toml | jq -r ".metadata.dependencies[] | select( .id == env.ID ) | select( .version | test( env.VERSION_PATTERN ) )")
+                ARCH=${ARCH:-amd64}
+                OLD_VERSION=$(echo "$VERSION_DEPS" | jq -r 'select( .purl | contains( env.ARCH ) ) | .version')
+
+                if [ -z "$OLD_VERSION" ]; then
+                  ARCH="" # empty means noarch
+                  OLD_VERSION=$(echo "$VERSION_DEPS" | jq -r ".version")
+                fi
 
                 update-buildpack-dependency \
                   --buildpack-toml buildpack.toml \
                   --id "${ID}" \
+                  --arch "${ARCH}" \
                   --version-pattern "${VERSION_PATTERN}" \
                   --version "${VERSION}" \
                   --cpe-pattern "${CPE_PATTERN:-}" \
@@ -72,7 +59,9 @@ jobs:
                   --purl-pattern "${PURL_PATTERN:-}" \
                   --purl "${PURL:-}" \
                   --uri "${URI}" \
-                  --sha256 "${SHA256}"
+                  --sha256 "${SHA256}" \
+                  --source "${SOURCE_URI}" \
+                  --source-sha256 "${SOURCE_SHA256}"
 
                 git add buildpack.toml
                 git checkout -- .
@@ -89,16 +78,19 @@ jobs:
                 echo "new-version=${VERSION}" >> "$GITHUB_OUTPUT"
                 echo "version-label=${LABEL}" >> "$GITHUB_OUTPUT"
               env:
+                ARCH: ""
                 CPE: ${{ steps.dependency.outputs.cpe }}
                 CPE_PATTERN: ""
                 ID: ytt
                 PURL: ${{ steps.dependency.outputs.purl }}
                 PURL_PATTERN: ""
                 SHA256: ${{ steps.dependency.outputs.sha256 }}
+                SOURCE_SHA256: ${{ steps.dependency.outputs.source_sha256 }}
+                SOURCE_URI: ${{ steps.dependency.outputs.source }}
                 URI: ${{ steps.dependency.outputs.uri }}
                 VERSION: ${{ steps.dependency.outputs.version }}
                 VERSION_PATTERN: '[\d]+\.[\d]+\.[\d]+'
-            - uses: peter-evans/create-pull-request@v5
+            - uses: peter-evans/create-pull-request@v6
               with:
                 author: ${{ secrets.JAVA_GITHUB_USERNAME }} <${{ secrets.JAVA_GITHUB_USERNAME }}@users.noreply.github.com>
                 body: Bumps `Ytt CLI` from `${{ steps.buildpack.outputs.old-version }}` to `${{ steps.buildpack.outputs.new-version }}`.
